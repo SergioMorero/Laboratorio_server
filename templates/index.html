@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jumping Pals</title>
+    <link rel="icon" type="image/x-ico" href="http://localhost:8000/favicon.ico" />
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: auto;
+            background-color: #ffffff;
+            color: #000000;
+            flex-direction: column;
+            text-align: center;
+        }
+        .container {
+            max-width: 100%;
+        }
+        img {
+            max-width: 100%;
+            max-height:100%;
+            margin-bottom: 14px;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated; 
+        }
+
+        .tab {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+        .tab-buttons {
+            display: flex;
+        }
+        .tab-buttons button {
+            padding: 10px 20px;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            cursor: pointer;
+        }
+        .tab-buttons button.active {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+
+<body>
+    <img src="http://localhost:8000/jumpal_logo.png" width="440" height="240" alt="Imagen temporal del videojuego">
+</body>
+
+<body>
+
+    <!-- Embed del juego Unity -->
+    <!-- <iframe src="path_to_webgl_build/index.html" width="800" height="600"></iframe> -->
+
+    <!-- Placeholder para el embed del juego -->
+    <!-- <img src="https://i.pinimg.com/736x/e3/24/f7/e324f790cfe0a51d76f98356475cc408.jpg" width="238" height="375" alt="Imagen temporal del videojuego"> -->
+
+    <!-- Actual placeholder -->
+    <img src="http://localhost:8000/placeholder.png" width="960" height="540" alt="Imagen temporal del videojuego">
+
+    <!-- Tab selection -->
+    <div class="tab-buttons">
+        <button onclick="openTab(event, 'createUserTab')" class="active">Create User</button>
+        <button onclick="openTab(event, 'modifyUserTab')">Modify User</button>
+        <button onclick="openTab(event, 'deleteUserTab')">Delete User</button>
+    </div>
+
+
+    <!-- Create New User -->
+    <div id="createUserTab" class="tab" style="display: block;">
+        <h2>Crear Usuario</h2>
+
+        <form id="addUserForm">
+            <label for="name">Username:</label>
+            <input type="text" id="name" placeholder="username" required><br><br>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" placeholder="password" required><br><br>
+
+            <button type="submit">Create User</button>
+        </form>
+    </div>
+
+    <!-- Modify User -->
+    <div id="modifyUserTab" class="tab">
+        <h2>Modificar Usuario</h2>
+
+        <form id="ModifyUserForm">
+            <label for="currentName">Current Username:</label>
+            <input type="text" id="currentName" placeholder="username" required><br><br>
+
+            <label for="currentPassword">Current Password:</label>
+            <input type="password" id="currentPassword" placeholder="password" required><br><br>
+
+            <br><br>
+
+            <label for="newName">New Username:</label>
+            <input type="text" id="newName" placeholder="new username (optional)"><br><br>
+
+            <label for="newPassword">New Password:</label>
+            <input type="password" id="newPassword" placeholder="new password (optional)"><br><br>
+
+            <button type="submit">Modify User</button>
+        </form>
+    </div>
+
+    <!-- Delete User -->
+    <div id="deleteUserTab" class="tab">
+        <h2>Eliminar Usuario</h2>
+
+        <form id="deleteUserForm">
+            <label for="deleteName">Username:</label>
+            <input type="text" id="deleteName" placeholder="username" required><br><br>
+
+            <label for="deletePassword">Password:</label>
+            <input type="password" id="deletePassword" placeholder="password" required><br><br>
+
+            <button type="submit">Delete User</button>
+        </form>
+    </div>
+
+    <script>
+        // Open tabs
+        function openTab(event, tabName) {
+            var i, tabcontent, tabbuttons;
+            tabcontent = document.getElementsByClassName("tab");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tabbuttons = document.getElementsByClassName("tab-buttons")[0].children;
+            for (i = 0; i < tabbuttons.length; i++) {
+                tabbuttons[i].classList.remove("active");
+            }
+            document.getElementById(tabName).style.display = "block";
+            event.currentTarget.classList.add("active");
+        }
+
+        // Add new users to database
+        document.getElementById('addUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            let name = document.getElementById('name').value;
+            let password = document.getElementById('password').value;
+
+            let response = await fetch('http://localhost:5000/user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: name, password: password })
+            });
+
+            let result = await response.json();
+            console.log(result);
+
+            if (result.message) {
+                alert(result.message);
+            } else if (result.error) {
+                alert("Error: " + result.error);
+            } else {
+                alert('Error al añadir el usuario');
+            }
+
+            document.getElementById('name').value = '';
+            document.getElementById('password').value = '';
+        });
+
+        // Modify username or password from existing user in database
+        document.getElementById('ModifyUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            let name = document.getElementById('currentName').value;
+            let password = document.getElementById('currentPassword').value;
+            let newName = document.getElementById('newName').value;
+            let newPassword = document.getElementById('newPassword').value;
+            let response = await fetch('http://localhost:5000/user', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: name, password: password, newName: newName, newPassword: newPassword })
+            });
+
+            let result = await response.json();
+            console.log(result);
+
+            if (result.message) {
+                alert(result.message);
+            } else if (result.error) {
+                alert("Error: " + result.error);
+            } else {
+                alert('Error al modificar al usuario');
+            }
+
+            document.getElementById('currentName').value = '';
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newName').value = '';
+            document.getElementById('newPassword').value = '';
+        });
+
+        // Delete user from database
+        document.getElementById('deleteUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            let name = document.getElementById('deleteName').value;
+            let password = document.getElementById('deletePassword').value;
+            let response = await fetch(`http://localhost:5000/user`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: name, password: password })
+            });
+
+            let result = await response.json();
+            console.log(result);
+
+            if (result.message) {
+                alert(result.message);
+            } else if (result.error) {
+                alert("Error: " + result.error);
+            } else {
+                alert('Error al eliminar al usuario');
+            }
+
+            document.getElementById('deleteName').value = '';
+            document.getElementById('deletePassword').value = '';
+
+        });
+    </script>
+
+</body>
+
+</html>
