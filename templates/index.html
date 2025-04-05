@@ -61,10 +61,10 @@
     <!-- <iframe src="path_to_webgl_build/index.html" width="800" height="600"></iframe> -->
 
     <!-- Placeholder para el embed del juego -->
-    <!-- <img src="https://i.pinimg.com/736x/e3/24/f7/e324f790cfe0a51d76f98356475cc408.jpg" width="238" height="375" alt="Imagen temporal del videojuego"> -->
+    <img src="https://i.pinimg.com/736x/e3/24/f7/e324f790cfe0a51d76f98356475cc408.jpg" width="238" height="375" alt="Imagen temporal del videojuego">
 
     <!-- Actual placeholder -->
-    <img src="http://localhost:8000/placeholder.png" width="960" height="540" alt="Imagen temporal del videojuego">
+    <!-- <img src="http://localhost:8000/placeholder.png" width="960" height="540" alt="Imagen temporal del videojuego"> -->
 
     <!-- Tab selection -->
     <div class="tab-buttons">
@@ -150,7 +150,7 @@
             let name = document.getElementById('name').value;
             let password = document.getElementById('password').value;
 
-            let response = await fetch('http://localhost:5000/user', {
+            let response = await fetch('http://localhost:5000/create-user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -212,7 +212,7 @@
 
             let name = document.getElementById('deleteName').value;
             let password = document.getElementById('deletePassword').value;
-            let response = await fetch(`http://localhost:5000/user`, {
+            let response = await fetch(`http://localhost:5000/delete-user`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
