@@ -42,7 +42,7 @@ def verify_user(name: str, password: str) -> bool:
         print(f"Error: {str(e)}")
         return False
 
-@app.route('/create-user', methods=['POST'])
+@app.route('/user', methods=['POST'])
 def add_user():
     try:
         print("Starting query")
@@ -50,7 +50,7 @@ def add_user():
         print(f"Raw body: {request.data}")
         print(f"Request content-type: {request.content_type}")
         print(f"Request body: {request.get_data(as_text=True)}")
-        
+
         data = request.json
         print(f"Got JSON: {data}")
         name = data.get('name')
@@ -110,60 +110,33 @@ def deleteUser():
         print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
 
-@app.route('/delete-user', methods=['POST', 'DELETE'])
-def delete_user():
-    # Realiza un DELETE mediante un POST para facilitar la interacción con unity
-    try:
-        data = request.json
-        name = data.get('name')
-        password = data.get('password')
-
-        if not verify_user(name, password):
-            return jsonify({"error": str(e)}), 401
-
-        conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM user WHERE name = %s", (name,))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return jsonify({"message": "Usuario eliminado correctamente"})
-
-    except Exception as e:
-        print("Error: ", str(e))
-        return jsonify({"error": str(e)}), 500
-
-    """
-    if request.method == 'POST' and request.form.get('_method') == 'DELETE':
-        username = request.form.get('username')
-    elif request.method == 'DELETE':
-        username = request.json.get('username')  # If you go with raw DELETE + JSON body
-    else:
-        return jsonify({'error': 'Invalid request'}), 400
-
-    if not username:
-        return jsonify({'error': 'Username required'}), 400
-
-    # Your DB logic here, e.g.:
-    # db.execute("DELETE FROM users WHERE username = ?", (username,))
-    # db.commit()
-
-    return jsonify({'message': f'User {username} deleted successfully'})
-    """
-
 @app.route('/user', methods=['PUT'])
 def update_user():
     try:
+        print("Starting query")
+        print(f"Got request: {request}")
+        print(f"Raw body: {request.data}")
+        print(f"Request content-type: {request.content_type}")
+        print(f"Request body: {request.get_data(as_text=True)}")
+
         data = request.get_json()
+        print(f"Got JSON: {data}")
         current_name = data.get('name')
         current_password = data.get('password')
         new_name = data.get('newName')
         new_password = data.get('newPassword')
 
+        print(f"Got Old name and password: {current_name}, {current_password}")
+        print(f"Got New name and password: {new_name}, {new_password}")
+
         if not new_name and not new_password:
+            print("Cannot get name or password")
             return jsonify({"error": "No se proporcionaron nuevos datos"}), 400
 
+        print("Got data")
+
         if not verify_user(current_name, current_password):
+            print("Mismatch")
             return jsonify({"error": "Unauthorized"}), 401
 
         conn = mysql.connector.connect(**db_config)
@@ -177,8 +150,8 @@ def update_user():
 
         conn.commit()
 
-        if cursor.rowcount == 0:
-            return jsonify({"error": "Usuario no encontrado"}), 404
+        """if cursor.rowcount == 0:
+            return jsonify({"error": "Usuario no encontrado"}), 404"""
 
         cursor.close()
         conn.close()
