@@ -11,17 +11,6 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:8000"}})
 def home():
     return render_template('index.html')
 
-@app.route('/user', methods=['GET'])
-def get_user():
-
-    conn = sqlite3.connect(**db_config)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM user WHERE name = %s AND password = %s", (name, password))
-    data = cursor.fetchall()
-    conn.close()
-
-    return jsonify(data)
-
 def verify_user(name: str, password: str) -> bool:
     # Función que permite verificar que un usuario y una contraseña son un match
     # Para uso interno de server.py
@@ -41,6 +30,81 @@ def verify_user(name: str, password: str) -> bool:
     except Exception as e:
         print(f"Error: {str(e)}")
         return False
+
+@app.route('/server', methods=['GET'])
+def check_connection():
+    try:
+
+        print("Attempting to connect to server")
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        print("Attempting to execute query")
+        cursor.execute("SELECT * FROM user")
+        print("Executed query")
+
+        data = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        print("Successfuly connected to server")
+        return jsonify(data)
+
+    except Exception as e:
+        print("Error: ", str(e))
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/login', methods=['POST'])
+def get_user():
+    try:
+        print("Starting query")
+        print(f"Got request: {request}")
+        print(f"Raw body: {request.data}")
+        print(f"Request content-type: {request.content_type}")
+        print(f"Request body: {request.get_data(as_text=True)}")
+
+        data = request.json
+        print(f"Got JSON: {data}")
+        name = data.get('name')
+        password = data.get('password')
+
+        print(f"Got name and password: {name}, {password}")
+
+        if not name and not password:
+            print("Cannot get name or password")
+            return jsonify({"error": "No se proporcionaron nuevos datos"}), 400
+        print("Got data")
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        print("Created cursor")
+
+        cursor.execute("SELECT * FROM user WHERE name = %s AND password = %s", (name, password))
+        print("Executed query")
+
+        data = cursor.fetchone()
+        if data:
+            user = {
+                "id": data[0],
+                "name": data[1],
+                "password": data[2]
+            }
+            print("Data fetched")
+            cursor.close()
+            conn.close()
+            print("Closed")
+            print("Usuario autenticado correctamente")
+            print(user)
+            return jsonify(user), 200
+        else:
+            return jsonify({"error": "No user found"}), 404
+    
+    except Exception as e:
+        print("Error:", str(e))
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/user', methods=['POST'])
 def add_user():
