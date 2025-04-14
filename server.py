@@ -90,7 +90,9 @@ def get_user():
             user = {
                 "id": data[0],
                 "name": data[1],
-                "password": data[2]
+                "password": data[2], 
+                "score": data[3],
+                "coins": data[4]
             }
             print("Data fetched")
             cursor.close()
@@ -221,6 +223,28 @@ def update_user():
         conn.close()
 
         return jsonify({"message": "Usuario actualizado correctamente"})
+    
+    except Exception as e:
+        print("Error:", str(e))
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/set-score', methods=['PUT'])
+def set_score():
+    try:
+        data = request.json
+        user_id = data.get('id')
+        score = data.get('score')
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE user SET score = %s WHERE id = %s", (score, user_id))
+
+        conn.commit()       
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message": "Puntaje actualizado correctamente"})
     
     except Exception as e:
         print("Error:", str(e))
