@@ -250,7 +250,7 @@ def set_score():
         print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
 
-@app.route('/give-coin', methods=[PUT])
+@app.route('/give-coin', methods=['PUT'])
 def give_coins():
     try:
         data = request.json
@@ -259,7 +259,7 @@ def give_coins():
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
 
-        cursor.execute("UPDATE user SET coins = coins + 1 WHERE id = %s", (user_id))
+        cursor.execute("UPDATE user SET coins = coins + 1 WHERE id = %s", (user_id, ))
 
         conn.commit()       
         cursor.close()
