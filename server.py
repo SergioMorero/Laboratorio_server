@@ -250,5 +250,26 @@ def set_score():
         print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
 
+@app.route('/give-coin', methods=[PUT])
+def give_coins():
+    try:
+        data = request.json
+        user_id = data.get('id')
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE user SET coins = coins + 1 WHERE id = %s", (user_id))
+
+        conn.commit()       
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message": "Monedas actualizadas correctamente"})
+    
+    except Exception as e:
+        print("Error:", str(e))
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, host="127.0.0.1", port=5000)
