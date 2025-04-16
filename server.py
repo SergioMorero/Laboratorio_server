@@ -121,7 +121,6 @@ def add_user():
         print(f"Got JSON: {data}")
         name = data.get('name')
         password = data.get('password')
-
         print(f"Got name and password: {name}, {password}")
 
         if not name and not password:
@@ -136,9 +135,16 @@ def add_user():
         print("Created cursor")
 
         cursor.execute("INSERT INTO user (name, password) VALUES (%s, %s)", (name, password))
+        user_id = cursor.lastrowid # Obtiene el ID autogenerado
+        print(user_id)
         print("Executed query")
         conn.commit()
         print("Commited")
+
+        # Añade al usuario a la leaderboard al crearlo
+        cursor.execute("INSERT INTO leaderboard (id, maxscore) VALUES (%s, %s)", (user_id, 0))
+        conn.commit()
+
         cursor.close()
         conn.close()
         print("CLosed")
@@ -238,6 +244,7 @@ def set_score():
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
 
+        cursor.execute("UPDATE leaderboard SET maxscore = %s WHERE id = %s", (score, user_id))
         cursor.execute("UPDATE user SET score = %s WHERE id = %s", (score, user_id))
 
         conn.commit()       
