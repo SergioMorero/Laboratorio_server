@@ -142,7 +142,7 @@ def add_user():
         print("Commited")
 
         # Añade al usuario a la leaderboard al crearlo
-        cursor.execute("INSERT INTO leaderboard (id, maxscore) VALUES (%s, %s)", (user_id, 0))
+        cursor.execute("INSERT INTO leaderboard (id, score) VALUES (%s, %s)", (user_id, 0))
         conn.commit()
 
         cursor.close()
@@ -244,7 +244,8 @@ def set_score():
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
 
-        cursor.execute("UPDATE leaderboard SET maxscore = %s WHERE id = %s", (score, user_id))
+        cursor.execute("UPDATE leaderboard SET score = %s WHERE id = %s", (score, user_id))
+        conn.commit()
         cursor.execute("UPDATE user SET score = %s WHERE id = %s", (score, user_id))
 
         conn.commit()       
@@ -274,6 +275,25 @@ def give_coins():
 
         return jsonify({"message": "Monedas actualizadas correctamente"})
     
+    except Exception as e:
+        print("Error:", str(e))
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/leaderboard', methods=['GET'])
+def leaderboard():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("""SELECT user.name, leaderboard.score FROM leaderboard JOIN user ON leaderboard.id = user.id
+                       ORDER BY leaderboard.score DESC LIMIT 10""")
+        rows = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+        return jsonify(rows)
+
     except Exception as e:
         print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
