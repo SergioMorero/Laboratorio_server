@@ -279,6 +279,27 @@ def give_coins():
         print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
 
+@app.route('/buy-character', methods=['PUT'])
+def withdraw_money():
+    try:
+        data = request.json
+        user_id = data.get('id')
+        coin_amount = data.get('CoinAmount')
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE user SET coins = coins - %s WHERE id = %s", (coin_amount, user_id))
+
+        conn.commit()       
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message": "Pago realizado correctamente"})
+    
+    except Exception as e:
+        print("Error:", str(e))
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/leaderboard', methods=['GET'])
 def leaderboard():
