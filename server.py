@@ -316,8 +316,9 @@ def show_achievements(user_id):
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
 
-        cursor.execute("""SELECT achv.id, achv.name, achv.description FROM achievement achv INNER JOIN userHasAchievement uha
-                        ON uha.achievement_id = achv.id WHERE uha.user_id = %s""", (user_id,))
+        cursor.execute("""SELECT achv.id, achv.name, achv.description FROM achievement achv 
+                        INNER JOIN userHasAchievement uha ON uha.achievement_id = achv.id 
+                        WHERE uha.user_id = %s""", (user_id,))
 
         achievements = cursor.fetchall()
 
