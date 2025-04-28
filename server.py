@@ -138,11 +138,13 @@ def add_user():
         user_id = cursor.lastrowid # Obtiene el ID autogenerado
         print(user_id)
         print("Executed query")
-        conn.commit()
         print("Commited")
 
         # Añade al usuario a la leaderboard al crearlo
         cursor.execute("INSERT INTO leaderboard (id, score) VALUES (%s, %s)", (user_id, 0))
+
+        # Otorgar skin por defecto
+        cursor.execute("INSERT INTO has_skin (user_id, skin_id) VALUES (%s, 0)", (user_id, ))
         conn.commit()
 
         cursor.close()
@@ -273,6 +275,8 @@ def give_coins():
         cursor.close()
         conn.close()
 
+        print("gave coin")
+
         return jsonify({"message": "Monedas actualizadas correctamente"})
     
     except Exception as e:
@@ -280,22 +284,54 @@ def give_coins():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/buy-character', methods=['PUT'])
-def withdraw_money():
+def buy_character():
     try:
         data = request.json
-        user_id = data.get('id')
+        user_id = data.get('UserId')
+        character_id = data.get('CharId')
         coin_amount = data.get('CoinAmount')
 
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
 
         cursor.execute("UPDATE user SET coins = coins - %s WHERE id = %s", (coin_amount, user_id))
+        cursor.execute("INSERT INTO has_skin(user_id, skin_id) VALUES(%s, %s)", (user_id, character_id))
 
         conn.commit()       
         cursor.close()
         conn.close()
 
         return jsonify({"message": "Pago realizado correctamente"})
+    
+    except Exception as e:
+        print("Error:", str(e))
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/has-character', methods=['PUT'])
+def char_list():
+    try:
+        data = request.json
+        user_id = data.get('id')
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        cursor.execute("""SELECT skin.id as id, 
+                        CASE WHEN has_skin.user_id IS NULL THEN FALSE ELSE TRUE END AS has
+                        FROM skin
+                        LEFT JOIN has_skin ON skin.id = has_skin.skin_id
+                        AND has_skin.user_id = %s
+                        ORDER BY id ASC""",
+                        (user_id, ))
+
+        columns = [desc[0] for desc in cursor.description]
+        result = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        conn.commit()       
+        cursor.close()
+        conn.close()
+
+        return jsonify({"characters": result})
     
     except Exception as e:
         print("Error:", str(e))
