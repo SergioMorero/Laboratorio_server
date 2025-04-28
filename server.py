@@ -260,6 +260,113 @@ def set_score():
         print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
 
+@app.route('/achievements', methods=['PUT'])
+def check_achievements():
+    try:
+        data = request.json
+        user_id = data.get('id')
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT coins, totalJumps, enemiesKilled FROM user WHERE id = %s", (user_id,))
+        result = cursor.fetchone()
+        coins = result[0]
+        jumps = result[1]
+        kills = result[2]
+
+        cursor.execute("""SELECT achv.id FROM achievement achv LEFT JOIN userHasAchievement uha ON 
+                        achv.id = uha.achievement_id AND uha.user_id = %s 
+                        WHERE achv.totalJumpsRequired <= %s AND uha.achievement_id IS NULL AND achv.id < 11
+                        """, (user_id, jumps))
+
+        new_achievements = cursor.fetchall()
+
+        cursor.execute("""SELECT achv.id FROM achievement achv LEFT JOIN userHasAchievement uha ON 
+                        achv.id = uha.achievement_id AND uha.user_id = %s 
+                        WHERE achv.enemiesRequired <= %s AND uha.achievement_id IS NULL AND achv.id BETWEEN 11 AND 20
+                        """, (user_id, kills))
+
+        new_achievements.extend(cursor.fetchall())
+
+        cursor.execute("""SELECT achv.id FROM achievement achv LEFT JOIN userHasAchievement uha ON 
+                        achv.id = uha.achievement_id AND uha.user_id = %s 
+                        WHERE achv.coinsRequired <= %s AND uha.achievement_id IS NULL AND achv.id BETWEEN 21 AND 30
+                        """, (user_id, coins))
+
+        new_achievements.extend(cursor.fetchall())
+
+        for achv in new_achievements:
+            achv_id = achv[0]
+            cursor.execute("""INSERT INTO userHasAchievement (user_id, achievement_id) 
+                           VALUES (%s, %s)""", (user_id, achv_id))
+
+        conn.commit()
+        cursor.close()
+        if len(new_achievements) != 0:
+            return f"Se asignaron {len(new_achievements)} logro/s nuevo/s."
+        else:
+            return "No hay nuevos logros asignados"
+
+    except Exception as e:
+        print("Error:", str(e))
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/achievements/<int:user_id>', methods=['GET'])
+def show_achievements(user_id):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        cursor.execute("""SELECT achv.id, achv.name, achv.description FROM achievement achv 
+                        INNER JOIN userHasAchievement uha ON uha.achievement_id = achv.id 
+                        WHERE uha.user_id = %s""", (user_id,))
+
+        achievements = cursor.fetchall()
+
+        achievement_list = []
+        for achv in achievements:
+            achievement_list.append({
+                'id': achv[0],
+                'name': achv[1],
+                'desc': achv[2]
+            })
+
+        cursor.close()
+        conn.close()
+
+        return jsonify(achievement_list)
+
+    except Exception as e:
+        print("Error:", str(e))
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/set-stats', methods=['PUT'])
+def set_stats():
+    try:
+        data = request.json
+        user_id = data.get('id')
+        jumps = data.get('jumps')
+        enemies_killed = data.get('enemiesKilled')
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE user SET totalJumps = totalJumps + %s WHERE id = %s", (jumps, user_id))
+        conn.commit()
+        cursor.execute("UPDATE user SET enemiesKilled = enemiesKilled + %s WHERE id = %s", (enemies_killed, user_id))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message": "Estadísticas actualizadas correctamente"})
+
+    except Exception as e:
+        print("Error:", str(e))
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/give-coin', methods=['PUT'])
 def give_coins():
     try:
