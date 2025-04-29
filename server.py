@@ -451,7 +451,7 @@ def leaderboard():
         cursor = conn.cursor(dictionary=True)
 
         cursor.execute("""SELECT user.name, leaderboard.score FROM leaderboard JOIN user ON leaderboard.id = user.id
-                       ORDER BY leaderboard.score DESC LIMIT 10""")
+                       ORDER BY leaderboard.score DESC LIMIT 5""")
         rows = cursor.fetchall()
 
         cursor.close()
