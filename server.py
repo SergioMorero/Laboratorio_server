@@ -1,6 +1,5 @@
 from flask import Flask, jsonify, request, render_template
 import mysql.connector
-from flask_mysqldb import MySQL
 from flask_cors import CORS
 from credential import db_config
 
@@ -463,4 +462,6 @@ def leaderboard():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host="127.0.0.1", port=5000)
+    import os
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
