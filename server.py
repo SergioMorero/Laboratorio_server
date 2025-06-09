@@ -465,27 +465,28 @@ def leaderboard():
         return jsonify({"error": str(e)}), 500
 
 
-"""
+
 @app.route('/create-room', methods=['POST'])
 def create-room():
     try:
         ip = request.form.get("ip")
         port = request.form.get("port")
+
         if ip and port:
-            room_id = str(uuid.uuid4())[:8]
+            room_id = str(uuid.uuid4())[:8]  # ID único de 8 caracteres
             rooms[room_id] = {
                 "ip": ip,
                 "port": port
             }
             return jsonify({"status": "success", "room_id": room_id}), 200
         else:
-            return jsonify({"status": "error", "message": "missing parameters"}), 400
+            return jsonify({"status": "error", "message": "Missing parameters"}), 400
 
     except Exception as e:
-        print("Error:", str(e))
-        return jsonify({"error": str(e)}), 500
+        print("Error en /create-room:", str(e))
+        return jsonify({"status": "error", "message": str(e)}), 500
 
-
+"""
 @app.route('/get-room/<roomId>', methods=['GET'])
 def get-room(roomId):
     room = rooms.get(roomId)
