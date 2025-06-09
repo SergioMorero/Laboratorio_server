@@ -484,7 +484,7 @@ def create-room():
     except Exception as e:
         print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
-"""
+
 
 @app.route('/get-room/<roomId>', methods=['GET'])
 def get-room(roomId):
@@ -499,6 +499,7 @@ def get-room(roomId):
         return jsonify({
             "status": "error"
         }), 404
+"""
 
 if __name__ == '__main__':
     import os
