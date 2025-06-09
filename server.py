@@ -474,7 +474,7 @@ def create_room():
 
         if ip and port:
             #room_id = str(uuid.uuid4())[:8]
-            room_id = abcdefgh
+            room_id = "abcdefgh"
             rooms[room_id] = {
                 "ip": ip,
                 "port": port
