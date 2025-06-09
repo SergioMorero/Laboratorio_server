@@ -508,6 +508,17 @@ def get_room(roomId):
             "status": "error"
         }), 404
 
+@app.route('/get-all-rooms', methods=['GET'])
+def get_rooms():
+    room_list = []
+    for roomId, data in rooms.items():
+        room_list.append({
+            "roomId": roomId,
+            "ip": data["ip"],
+            "port": data["port"]
+        })
+    return jsonify(room_list), 200
+
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 5000))
