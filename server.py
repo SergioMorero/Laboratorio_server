@@ -473,8 +473,7 @@ def create_room():
         port = request.form.get("port")
 
         if ip and port:
-            #room_id = str(uuid.uuid4())[:8]
-            room_id = "abcdefghi"
+            room_id = str(uuid.uuid4())[:8]
             rooms[room_id] = {
                 "ip": ip,
                 "port": port
