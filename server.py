@@ -465,7 +465,7 @@ def leaderboard():
         return jsonify({"error": str(e)}), 500
 
 
-
+"""
 @app.route('/create-room', methods=['POST'])
 def create-room():
     try:
@@ -484,6 +484,7 @@ def create-room():
     except Exception as e:
         print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
+"""
 
 @app.route('/get-room/<roomId>', methods=['GET'])
 def get-room(roomId):
