@@ -485,7 +485,7 @@ def create_room():
         print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
 
-@app.rout('/get-room/<roomId>', methods=['GET'])
+@app.route('/get-room/<roomId>', methods=['GET'])
 def get_room(roomId):
     room = rooms.get(roomId)
     if room:
