@@ -2,9 +2,12 @@ from flask import Flask, jsonify, request, render_template
 import mysql.connector
 from flask_cors import CORS
 from credential import db_config
+import uuid
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:8000"}})
+
+rooms = {}
 
 @app.route('/')
 def home():
@@ -460,6 +463,41 @@ def leaderboard():
     except Exception as e:
         print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
+
+
+
+@app.route('/create-room', methods=['POST'])
+def create_room():
+    try:
+        ip = request.form.get("ip")
+        port = request.form.get("port")
+        if ip and port:
+            room_id = str(uuid.uuid4())[:8]
+            rooms[room_id] = {
+                "ip": ip,
+                "port": port
+            }
+            return jsonify({"status": "success", "room_id": room_id}), 200
+        else:
+            return jsonify({"status": "error", "message": "missing parameters"}), 400
+
+    except Exception as e:
+        print("Error:", str(e))
+        return jsonify({"error": str(e)}), 500
+
+@app.rout('/get-room/<roomId>', methods=['GET'])
+def get_room(roomId):
+    room = rooms.get(roomId)
+    if room:
+        return jsonify({
+            "status": "success",
+            "ip": room["ip"],
+            "port": room["port"]
+        }), 200
+    else:
+        return jsonify({
+            "status": "error"
+        }), 404
 
 if __name__ == '__main__':
     import os
