@@ -467,7 +467,7 @@ def leaderboard():
 
 
 @app.route('/create-room', methods=['POST'])
-def create_room():
+def create-room():
     try:
         ip = request.form.get("ip")
         port = request.form.get("port")
@@ -486,7 +486,7 @@ def create_room():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/get-room/<roomId>', methods=['GET'])
-def get_room(roomId):
+def get-room(roomId):
     room = rooms.get(roomId)
     if room:
         return jsonify({
