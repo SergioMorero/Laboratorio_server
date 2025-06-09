@@ -486,6 +486,13 @@ def create_room():
         print("Error en /create-room:", str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/delete-foom/<roomId>', methods=['DELETE'])
+def delete_room(roomId):
+    if roomId in rooms:
+        del rooms[room_id]
+        return jsonify({"status": "success"}), 200
+    else:
+        return jsonify({"status": "error", "message": "room not found"}), 404
 
 @app.route('/get-room/<roomId>', methods=['GET'])
 def get_room(roomId):
