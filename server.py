@@ -471,12 +471,14 @@ def create_room():
     try:
         ip = request.form.get("ip")
         port = request.form.get("port")
+        host = request.form.get("host")
 
         if ip and port:
             room_id = str(uuid.uuid4())[:8]
             rooms[room_id] = {
                 "ip": ip,
-                "port": port
+                "port": port,
+                "host": host
             }
             return jsonify({"status": "success", "room_id": room_id}), 200
         else:
@@ -501,7 +503,8 @@ def get_room(roomId):
         return jsonify({
             "status": "success",
             "ip": room["ip"],
-            "port": room["port"]
+            "port": room["port"],
+            "host": data["host"]
         }), 200
     else:
         return jsonify({
@@ -515,7 +518,8 @@ def get_rooms():
         room_list.append({
             "roomId": roomId,
             "ip": data["ip"],
-            "port": data["port"]
+            "port": data["port"],
+            "host": data["host"]
         })
     return jsonify(room_list), 200
 
