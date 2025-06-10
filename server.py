@@ -504,7 +504,7 @@ def get_room(roomId):
             "status": "success",
             "ip": room["ip"],
             "port": room["port"],
-            "host": data["host"]
+            "host": room["host"]
         }), 200
     else:
         return jsonify({
