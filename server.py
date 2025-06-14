@@ -532,7 +532,7 @@ def count_game():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor()
 
-    cursor.execute("UPDATE user SET games_played = games_player + 1 WHERE id = %s ", (user_id,))
+    cursor.execute("UPDATE user SET games_played = games_played + 1 WHERE id = %s ", (user_id,))
 
     conn.commit()
     cursor.close()
