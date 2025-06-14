@@ -523,6 +523,40 @@ def get_rooms():
         })
     return jsonify(room_list), 200
 
+
+@app.route('/count-game', methods=['PUT'])
+def count_game():
+    data = request.json
+    user_id = data.get('id')
+
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+
+    cursor.execute("UPDATE user SET games_played = games_player + 1 WHERE id = %s ", (user_id,))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({"message": "Game succesfully counted"})
+
+@app.route('/won-game', methods=['PUT'])
+def won_game():
+    data = request.json
+    user_id = data.get('id')
+
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+
+    cursor.execute("UPDATE user SET games_won = games_won + 1 WHERE id = %s ", (user_id,))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({"message": "Victory succesfully added"})
+
+
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 5000))
