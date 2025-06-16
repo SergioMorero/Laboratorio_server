@@ -570,7 +570,7 @@ def get_all_stats(userId):
     currentAchievements = cursor.fetchone()
 
     cursor.execute("SELECT COUNT(*) FROM achievement")
-    totalAchievements = cursor.fetchall()
+    totalAchievements = cursor.fetchone()
 
     cursor.close()
     conn.close()
