@@ -556,6 +556,35 @@ def won_game():
 
     return jsonify({"message": "Victory succesfully added"})
 
+@app.route('/get-all-stats/<userId>', methods=['GET'])
+def get-all-stats(userId):
+
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+
+    cursor.execute("""SELECT score, coins, totalJumps, enemiesKilled, games_played, games_won
+                   FROM user WHERE id = %s""", (userId, ))
+    normalStats = cursor.fetchone()
+
+    cursor.execute("SELECT COUNT(*) FROM userHasAchievement")
+    currentAchievements = cursor.fetchone()
+
+    cursor.execute("SELECT COUNT(*) FROM achievement")
+    totalAchievements = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({
+        'score': normalStats[0],
+        'coins': normalStats[1],
+        'jumps': normalStats[2],
+        'kills': normalStats[3],
+        'games_played': normalStats[4],
+        'games_won': normalStats[5],
+        'current': currentAchievements[0],
+        'total': totalAchievements[0]
+    })
 
 if __name__ == '__main__':
     import os
