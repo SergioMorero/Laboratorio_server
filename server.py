@@ -556,7 +556,7 @@ def won_game():
 
     return jsonify({"message": "Victory succesfully added"})
 
-@app.route('/get-all-stats/<userId>', methods=['GET'])
+@app.route('/get-all-stats/<int:userId>', methods=['GET'])
 def get_all_stats(userId):
 
     conn = mysql.connector.connect(**db_config)
