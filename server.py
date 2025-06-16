@@ -566,7 +566,7 @@ def get_all_stats(userId):
                    FROM user WHERE id = %s""", (userId, ))
     normalStats = cursor.fetchone()
 
-    cursor.execute("SELECT COUNT(*) FROM userHasAchievement")
+    cursor.execute("SELECT COUNT(*) FROM userHasAchievement WHERE user_id = %s", (userId, ))
     currentAchievements = cursor.fetchone()
 
     cursor.execute("SELECT COUNT(*) FROM achievement")
