@@ -124,8 +124,9 @@ def add_user():
         name = data.get('name')
         password = data.get('password')
         print(f"Got name and password: {name}, {password}")
+        email = data.get('email')
 
-        if not name and not password:
+        if not name and not password and not email:
             print("Cannot get name or password")
             return jsonify({"error": "No se proporcionaron nuevos datos"}), 400
 
@@ -136,7 +137,7 @@ def add_user():
 
         print("Created cursor")
 
-        cursor.execute("INSERT INTO user (name, password) VALUES (%s, %s)", (name, password))
+        cursor.execute("INSERT INTO user (name, password, email) VALUES (%s, %s, %s)", (name, password, email))
         user_id = cursor.lastrowid # Obtiene el ID autogenerado
         print(user_id)
         print("Executed query")
@@ -201,11 +202,12 @@ def update_user():
         current_password = data.get('password')
         new_name = data.get('newName')
         new_password = data.get('newPassword')
+        new_email = data.get('newEmail')
 
         print(f"Got Old name and password: {current_name}, {current_password}")
         print(f"Got New name and password: {new_name}, {new_password}")
 
-        if not new_name and not new_password:
+        if not new_name and not new_password and not new_email:
             print("Cannot get name or password")
             return jsonify({"error": "No se proporcionaron nuevos datos"}), 400
 
@@ -223,6 +225,8 @@ def update_user():
 
         if new_name:
             cursor.execute("UPDATE user SET name = %s WHERE name = %s", (new_name, current_name))
+        if new_email:
+            cursor.execute("UPDATE user SET email = %s WHERE name = %s", (new_email, current_name))
 
         conn.commit()
 
