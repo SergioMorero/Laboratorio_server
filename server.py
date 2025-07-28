@@ -684,7 +684,7 @@ def google_login():
 
     session_info[session_id] = [user_name[:10], user_email]
     session_status[session_id] = 1
-    return response.json()
+    return token_response
 
 @app.route("/google_user_info", methods=["GET"])
 def get_user_info():
