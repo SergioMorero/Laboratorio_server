@@ -170,6 +170,8 @@ def add_user():
         conn.close()
         print("CLosed")
 
+        greet(name, email)
+
         return jsonify({"message": "Usuario añadido correctamente"})
     
     except Exception as e:
@@ -318,10 +320,19 @@ def check_achievements():
 
         new_achievements.extend(cursor.fetchall())
 
+        # Get player email to send a notification
+        cursor.execute("""SELECT email FROM user WHERE user.id = %s""", (id,))
+        player_email = cursor.fetchone()
+
         for achv in new_achievements:
             achv_id = achv[0]
             cursor.execute("""INSERT INTO userHasAchievement (user_id, achievement_id) 
                            VALUES (%s, %s)""", (user_id, achv_id))
+
+            # Get achievement name and sen an email
+            cursor.execute("""SELECT name FROM achievement WHERE achievement.id = %s""", (achv_id,))
+            ach_name = cursor.fetchone()
+            congratulate(ach_name, player_email)
 
         conn.commit()
         cursor.close()
