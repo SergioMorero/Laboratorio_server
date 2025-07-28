@@ -3,9 +3,20 @@ import mysql.connector
 from flask_cors import CORS
 from credential import db_config
 import uuid
+from flask_mail import Mail, Message
+import random
+import base64
+import json
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:8000"}})
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'jumpingpals@gmail.com'
+app.config['MAIL_PASSWORD'] = 'jismleuofbxujlnw '
+app.config['MAIL_DEFAULT_SENDER'] = 'jumpingpals@gmail.com'
 
 rooms = {}
 
@@ -94,7 +105,8 @@ def get_user():
                 "name": data[1],
                 "password": data[2], 
                 "score": data[3],
-                "coins": data[4]
+                "coins": data[4],
+                "email": data[9]
             }
             print("Data fetched")
             cursor.close()
@@ -589,6 +601,114 @@ def get_all_stats(userId):
         'current': currentAchievements[0],
         'total': totalAchievements[0]
     })
+
+# Email
+
+def congratulate(achievement, player_email):
+    special_message = ["Congratulations", "Well done", "You're amazing", "Keep it up", "Impressive", "You're Jumping, Pal"]
+    congrat = special_message[random.randint(0, len(special_message) - 1)]
+    message = f"You've just unlocked the {achievement} achievement! {congrat}!"
+    msg = Message(
+        subject = "[JumpingPals] You've unlocked an achievement!",
+        recipients = [player_email],
+        body = message
+    )
+    mail.send(msg)
+
+def greet(player_name, player_email):
+    msg = Message(
+        subject = f"Welcome to JumpingPals, {player_name}!",
+        recipients = [player_email],
+        body = "You've just registered your brand new account on Jumping Pals!")
+
+# Google Authentication
+
+''' 
+    This dictionary stores all session IDs with a value:
+        * 0: Not finished
+        * 1: Approved
+        * -1: Not approved (or non-existing)
+'''
+
+session_status = {} # mapa con cada session_id y su estado
+session_info = {} # mapa con cada session_id asociado a la información requerida del usuario
+
+@app.route('/next_session_id', methods=['GET'])
+def next_session_id():
+    id = random.randint(0, 1000000)
+    while session_status.get(id) != None:
+        id = random.randint(0, 1000000)
+    session_status[id] = 0
+    return str(id), 200
+
+@app.route('/get_session_status', methods=['GET'])
+def get_session_status():
+    session_id: int = request.args.get('session_id', type=int)
+    if session_status.get(session_id) != None:
+        return str(session_status[session_id]), 200
+    else:
+        return str(-1), 400
+
+@app.route('/remove_session_id', methods=['DELETE'])
+def remove_session_id() -> None:
+    session_id: int = request.args.get('session_id', type=int)
+    session_status.pop(session_id, None)
+    session_info.pop(session_id, None)
+
+@app.route("/googlelogin") # callback para google
+def google_login():
+    code = request.args.get('code')
+    session_id = request.args.get('state')
+    response = requests.post("https://oauth2.googleapis.com/token", data={
+        "code": code,
+        "client_id": "736952218315-vn791pet3muafdum7o9ehr2u2g8bjhdi.apps.googleusercontent.com",
+        "client_secret": "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",
+        "redirect_uri": "https://jumping-pals.onrender.com/googlelogin",
+        "grant_type": "authorization_code"
+    })
+    session_status[session_id] = 1
+    user_info = decode_id_token(response.json()['id_token'])
+    user_name = user_info.get('name')
+    user_email = user_info.get("email")
+    session_info[session_id] = [user_name[:10], user_email]
+    return response.json()
+
+@app.route("/google_user_info", methods=["GET"])
+def get_user_info():
+    session_id = request.args.get('session_id', type=int)
+    field = request.args.get('field')
+    user_data = session_info[session_id]
+    return user_data[0] if field == 'name' else user_data[1] if field == 'email' else 'err'
+
+def decode_id_token(id_token):
+    # El JWT tiene 3 partes separadas por puntos: header.payload.signature
+    parts = id_token.split('.')
+    if len(parts) != 3:
+        raise ValueError("Token inválido")
+    # La segunda parte (payload) es la que contiene la info codificada en base64url
+    payload = parts[1]
+    # base64url requiere padding correcto:
+    padding = '=' * ((4 - len(payload) % 4) % 4)
+    payload += padding
+    decoded_bytes = base64.urlsafe_b64decode(payload)
+    decoded_str = decoded_bytes.decode('utf-8')
+    return json.loads(decoded_str)
+
+@app.route('/user_exists', methods=['GET'])
+def user_exists():
+    user_name = request.args.get('user_name')
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM user WHERE name = %s", (user_name, ))
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return jsonify({'exists': result is not None}), 200
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({'error': 'Database error'}), 400
+
 
 if __name__ == '__main__':
     import os
