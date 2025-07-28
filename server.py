@@ -359,8 +359,8 @@ def check_achievements():
         new_achievements.extend(cursor.fetchall())
 
         # Get player email to send a notification
-        cursor.execute("""SELECT email FROM user WHERE user.id = %s""", (id,))
-        player_email= cursor.fetchone()
+        cursor.execute("""SELECT email FROM user WHERE user.id = %s""", (user_id,))
+        player_email= cursor.fetchone()[0]
 
 
         for achv in new_achievements:
@@ -370,8 +370,8 @@ def check_achievements():
 
             # Get achievement name and sen an email
             cursor.execute("""SELECT name FROM achievement WHERE achievement.id = %s""", (achv_id,))
-            ach_name = cursor.fetchone()
-            congratulate(ach_name[0], player_email[0])
+            ach_name = cursor.fetchone()[0]
+            congratulate(ach_name, player_email)
 
         conn.commit()
         cursor.close()
