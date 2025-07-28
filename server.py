@@ -663,6 +663,7 @@ def remove_session_id() -> None:
 def google_login():
     code = request.args.get('code')
     session_id = request.args.get('state')
+    print(session_id)
     response = requests.post("https://oauth2.googleapis.com/token", data={
         "code": code,
         "client_id": os.getenv('GOOGLE_CLIENT_ID'),
