@@ -1,4 +1,5 @@
 Flask
 flask-cors
+flask-mail
 mysql-connector-python
 gunicorn
