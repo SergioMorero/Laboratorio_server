@@ -1,5 +1,8 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, session
 import mysql.connector
+import requests
+from google.oauth2 import id_token
+from google.auth.transport import requests as grequests
 from flask_cors import CORS
 from credential import db_config
 import uuid
@@ -660,7 +663,7 @@ def remove_session_id() -> None:
 def google_login():
     code = request.args.get('code')
     session_id = request.args.get('state')
-    response = request.post("https://oauth2.googleapis.com/token", data={
+    response = requests.post("https://oauth2.googleapis.com/token", data={
         "code": code,
         "client_id": os.getenv('GOOGLE_CLIENT_ID'),
         "client_secret": os.getenv('GOOGLE_CLIENT_SECRET'),

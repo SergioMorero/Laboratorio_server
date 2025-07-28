@@ -3,3 +3,7 @@ flask-cors
 flask-mail
 mysql-connector-python
 gunicorn
+requests
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
