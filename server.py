@@ -19,8 +19,10 @@ app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = 'jumpingpals@gmail.com'
-app.config['MAIL_PASSWORD'] = 'jismleuofbxujlnw '
+app.config['MAIL_PASSWORD'] = 'jismleuofbxujlnw'
 app.config['MAIL_DEFAULT_SENDER'] = 'jumpingpals@gmail.com'
+
+mail = Mail(app)
 
 rooms = {}
 
@@ -57,6 +59,7 @@ def greet(player_name, player_email):
         subject = f"Welcome to JumpingPals, {player_name}!",
         recipients = [player_email],
         body = "You've just registered your brand new account on Jumping Pals!")
+    mail.send(msg)
 
 
 @app.route('/')
