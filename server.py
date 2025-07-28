@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, render_template
 import mysql.connector
 from flask_cors import CORS
-from credential import db_config, google_auth
+from credential import db_config
 import uuid
 from flask_mail import Mail, Message
 import random
