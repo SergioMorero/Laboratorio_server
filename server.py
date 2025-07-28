@@ -667,7 +667,7 @@ def google_login():
         "code": code,
         "client_id": os.getenv('GOOGLE_CLIENT_ID'),
         "client_secret": os.getenv('GOOGLE_CLIENT_SECRET'),
-        "redirect_uri": "https://jumping-pals.onrender.com/googlelogin",
+        "redirect_url": "https://jumping-pals.onrender.com/googlelogin",
         "grant_type": "authorization_code"
     })
     session_status[session_id] = 1
@@ -683,6 +683,7 @@ def google_login():
     user_name = user_info.get('name')
     user_email = user_info.get("email")
     session_info[session_id] = [user_name[:10], user_email]
+    #return redirect(f"https://jumping-pals.onrender.com/")
     return response.json()
 
 @app.route("/google_user_info", methods=["GET"])
