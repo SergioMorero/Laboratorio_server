@@ -671,6 +671,7 @@ def google_login():
         "grant_type": "authorization_code"
     })
     session_status[session_id] = 1
+    print(response.json)
     user_info = decode_id_token(response.json()['id_token'])
     user_name = user_info.get('name')
     user_email = user_info.get("email")
