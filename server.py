@@ -24,6 +24,41 @@ app.config['MAIL_DEFAULT_SENDER'] = 'jumpingpals@gmail.com'
 
 rooms = {}
 
+def decode_id_token(id_token):
+    # El JWT tiene 3 partes separadas por puntos: header.payload.signature
+    parts = id_token.split('.')
+    if len(parts) != 3:
+        raise ValueError("Token inválido")
+    # La segunda parte (payload) es la que contiene la info codificada en base64url
+    payload = parts[1]
+    # base64url requiere padding correcto:
+    padding = '=' * ((4 - len(payload) % 4) % 4)
+    payload += padding
+    decoded_bytes = base64.urlsafe_b64decode(payload)
+    decoded_str = decoded_bytes.decode('utf-8')
+    return json.loads(decoded_str)
+
+
+# Email
+
+def congratulate(achievement, player_email):
+    special_message = ["Congratulations", "Well done", "You're amazing", "Keep it up", "Impressive", "You're Jumping, Pal"]
+    congrat = special_message[random.randint(0, len(special_message) - 1)]
+    message = f"You've just unlocked the {achievement} achievement! {congrat}!"
+    msg = Message(
+        subject = "[JumpingPals] You've unlocked an achievement!",
+        recipients = [player_email],
+        body = message
+    )
+    mail.send(msg)
+
+def greet(player_name, player_email):
+    msg = Message(
+        subject = f"Welcome to JumpingPals, {player_name}!",
+        recipients = [player_email],
+        body = "You've just registered your brand new account on Jumping Pals!")
+
+
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -617,24 +652,6 @@ def get_all_stats(userId):
         'total': totalAchievements[0]
     })
 
-# Email
-
-def congratulate(achievement, player_email):
-    special_message = ["Congratulations", "Well done", "You're amazing", "Keep it up", "Impressive", "You're Jumping, Pal"]
-    congrat = special_message[random.randint(0, len(special_message) - 1)]
-    message = f"You've just unlocked the {achievement} achievement! {congrat}!"
-    msg = Message(
-        subject = "[JumpingPals] You've unlocked an achievement!",
-        recipients = [player_email],
-        body = message
-    )
-    mail.send(msg)
-
-def greet(player_name, player_email):
-    msg = Message(
-        subject = f"Welcome to JumpingPals, {player_name}!",
-        recipients = [player_email],
-        body = "You've just registered your brand new account on Jumping Pals!")
 
 # Google Authentication
 
@@ -704,19 +721,7 @@ def get_user_info():
     user_data = session_info[session_id]
     return user_data[0] if field == 'name' else user_data[1] if field == 'email' else 'err'
 
-def decode_id_token(id_token):
-    # El JWT tiene 3 partes separadas por puntos: header.payload.signature
-    parts = id_token.split('.')
-    if len(parts) != 3:
-        raise ValueError("Token inválido")
-    # La segunda parte (payload) es la que contiene la info codificada en base64url
-    payload = parts[1]
-    # base64url requiere padding correcto:
-    padding = '=' * ((4 - len(payload) % 4) % 4)
-    payload += padding
-    decoded_bytes = base64.urlsafe_b64decode(payload)
-    decoded_str = decoded_bytes.decode('utf-8')
-    return json.loads(decoded_str)
+
 
 @app.route('/user_exists', methods=['GET'])
 def user_exists():
