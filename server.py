@@ -662,7 +662,7 @@ def google_login():
     response = requests.post("https://oauth2.googleapis.com/token", data={
         "code": code,
         "client_id": google_auth['client_id'],
-        "client_secret": google_auth['cliente_secret'],
+        "client_secret": google_auth['client_secret'],
         "redirect_uri": "https://jumping-pals.onrender.com/googlelogin",
         "grant_type": "authorization_code"
     })
