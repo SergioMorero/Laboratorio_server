@@ -7,6 +7,7 @@ from flask_mail import Mail, Message
 import random
 import base64
 import json
+import os
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:8000"}})
@@ -661,8 +662,8 @@ def google_login():
     session_id = request.args.get('state')
     response = requests.post("https://oauth2.googleapis.com/token", data={
         "code": code,
-        "client_id": google_auth['client_id'],
-        "client_secret": google_auth['client_secret'],
+        "client_id": os.getenv('GOOGLE_CLIENT_ID'),
+        "client_secret": os.getenv('GOOGLE_CLIENT_SECRET'),
         "redirect_uri": "https://jumping-pals.onrender.com/googlelogin",
         "grant_type": "authorization_code"
     })
