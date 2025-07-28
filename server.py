@@ -667,7 +667,7 @@ def google_login():
         "code": code,
         "client_id": os.getenv('GOOGLE_CLIENT_ID'),
         "client_secret": os.getenv('GOOGLE_CLIENT_SECRET'),
-        "redirect_url": "https://jumping-pals.onrender.com/googlelogin",
+        "redirect_uri": "https://jumping-pals.onrender.com/googlelogin",
         "grant_type": "authorization_code"
     })
     session_status[session_id] = 1
