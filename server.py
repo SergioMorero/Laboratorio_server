@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, render_template
 import mysql.connector
 from flask_cors import CORS
-from credential import db_config
+from credential import db_config, google_auth
 import uuid
 from flask_mail import Mail, Message
 import random
@@ -661,8 +661,8 @@ def google_login():
     session_id = request.args.get('state')
     response = requests.post("https://oauth2.googleapis.com/token", data={
         "code": code,
-        "client_id": "736952218315-vn791pet3muafdum7o9ehr2u2g8bjhdi.apps.googleusercontent.com",
-        "client_secret": "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",
+        "client_id": google_auth['client_id'],
+        "client_secret": google_auth['cliente_secret'],
         "redirect_uri": "https://jumping-pals.onrender.com/googlelogin",
         "grant_type": "authorization_code"
     })

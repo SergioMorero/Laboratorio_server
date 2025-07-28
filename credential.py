@@ -7,3 +7,8 @@ db_config = {
     'database': os.getenv('DB_NAME'),
     'port': int(os.getenv('DB_PORT', 3306))
 }
+
+google_auth = {
+    'client_id': os.getenv('GOOGLE_CLIENT_ID'),
+    'client_secret': os.getenv('GOOGLE_CLIENT_SECRET')
+}
