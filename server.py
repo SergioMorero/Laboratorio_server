@@ -896,7 +896,7 @@ def get_friends():
                     """
         if (acceptance == 1):
             cursor.execute(receiverQuery, (user_id, acceptance))
-        elif (acceptance == 0)
+        elif (acceptance == 0):
             cursor.execute(receiverQuery, (user_id, -2))
 
         receiverFriends = cursor.fetchall()
