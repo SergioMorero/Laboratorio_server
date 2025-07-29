@@ -671,28 +671,101 @@ session_info = {} # mapa con cada session_id asociado a la información requerid
 
 @app.route('/next_session_id', methods=['GET'])
 def next_session_id():
-    id = random.randint(0, 1000000)
-    while session_status.get(id) != None:
-        id = random.randint(0, 1000000)
-    session_status[id] = 0
-    return str(id), 200
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+    while True:
+        session_id = random.randint(0, 1000000)
+        cursor.execute("SELECT 1 FROM session WHERE id = %s LIMIT 1", (session_id,))
+        if not cursor.fetchone():  # Id is available
+            try:
+                cursor.execute("INSERT INTO session(id, state, username, email) VALUES(%s, 0, '', '')", (session_id,))
+                conn.commit()
+                cursor.close()
+                conn.close()
+                return str(session_id), 200
+            except mysql.connector.IntegrityError:  # Colission
+                conn.rollback()
+                continue
 
 @app.route('/get_session_status', methods=['GET'])
 def get_session_status():
     session_id: int = request.args.get('session_id', type=int)
-    if session_status.get(session_id) != None:
-        return str(session_status[session_id]), 200
-    else:
-        return str(-1), 400
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        cursor.execute("SELECT state FROM session WHERE id = %s", (session_id,))
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if result:
+            return str(result[0]), 200
+        else:
+            return str(-1), 404
+    except mysql.connector.Error as err:
+        cursor.close()
+        conn.close()
+        return jsonify({'error': f'Database error: {str(err)}'}), 500
 
 @app.route('/remove_session_id', methods=['DELETE'])
 def remove_session_id() -> None:
     session_id: int = request.args.get('session_id', type=int)
-    session_status.pop(session_id, None)
-    session_info.pop(session_id, None)
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM session WHERE id = %s", (session_id,))
+        conn.commit()
+        code = 204
+    except mysql.connector.Error as err:
+        code = 400
+    finally:
+        cursor.close()
+        conn.close()
+        return '', code
 
 @app.route("/googlelogin") # callback para google
 def google_login():
+    code = request.args.get('code')
+    session_id = request.args.get('state')
+    response = requests.post("https://oauth2.googleapis.com/token", data={
+        "code": code,
+        "client_id": os.getenv('GOOGLE_CLIENT_ID'),
+        "client_secret": os.getenv('GOOGLE_CLIENT_SECRET'),
+        "redirect_uri": "https://jumping-pals.onrender.com/googlelogin",
+        "grant_type": "authorization_code"
+    })
+    token_response = response.json()
+    print(f"token recibido: {token_response}")  # para depurar
+    id_token = token_response.get("id_token")
+    if not id_token:
+        return '{"error": "No se recibió id_token", "detalle": token_response}', 400
+    user_info = decode_id_token(response.json()['id_token'])
+
+    try:
+        user_name = user_info.get('name')
+        user_email = user_info.get("email")
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE session
+            SET
+                state = 1,
+                username = %s,
+                email = %s
+            WHERE id = %s"""
+                       , (user_name, user_email, session_id,))
+        conn.commit()
+        code = 200
+    except mysql.connector.Error as err:
+        code = 400
+    finally:
+        cursor.close()
+        conn.close()
+        return '', code
+
+
+"""
+def google_login():
+
     code = request.args.get('code')
     session_id = request.args.get('state')
     print(session_id)
@@ -717,13 +790,35 @@ def google_login():
     session_info[session_id] = [user_name[:10], user_email]
     session_status[session_id] = 1
     return f"{session_status[session_id]}"
+"""
+
 
 @app.route("/google_user_info", methods=["GET"])
 def get_user_info():
     session_id = request.args.get('session_id', type=int)
     field = request.args.get('field')
-    user_data = session_info[session_id]
-    return user_data[0] if field == 'name' else user_data[1] if field == 'email' else 'err'
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        if field == "name":
+            cursor.execute("SELECT username FROM session WHERE id = %s", (session_id,))
+        elif field == "email":
+            cursor.execute("SELECT email FROM session WHERE id = %s", (session_id,))
+        else:
+            raise Exception("Error in field")
+
+        result = cursor.fetchone()
+
+        if result:
+            return result[0], 200
+        else:
+            return '', 404
+    except mysql.connector.Error as err:
+        return jsonify({'error': f'Database error: {str(err)}'}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 
 
@@ -741,6 +836,21 @@ def user_exists():
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({'error': 'Database error'}), 400
+
+@app.route('/friends', methods=['PUT'])
+def add_friend():
+    data = request.json
+    sender_id = data.get("sender_id")
+    sender_name = data.get("sender_name")
+    receiver_name = data.get("receiver_name")
+
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id FROM user WHERE name = %s", (receiver_name, ))
+    receiver_id = cursor.fetchone()[0]
+
+
 
 
 if __name__ == '__main__':
