@@ -865,7 +865,7 @@ def add_friend():
                    "OR"
                    "(receiver_id = %s AND sender_id = %s)", (sender_id, receiver_id, sender_id, receiver_id))
     newResult = cursor.fetchone()
-    if result is not None:
+    if newResult is not None:
         return jsonify({"message": "Ya hay una solicitud o son amigos"}), 200
 
     cursor.execute("""INSERT INTO friends (sender_id, sender_name, receiver_id, receiver_name, accepted)
