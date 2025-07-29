@@ -837,6 +837,8 @@ def user_exists():
         print(f"Error: {str(e)}")
         return jsonify({'error': 'Database error'}), 400
 
+# Friends
+
 @app.route('/friends', methods=['PUT'])
 def add_friend():
     data = request.json
@@ -852,6 +854,41 @@ def add_friend():
 
 
 
+@app.route('/friends', methods=['POST'])
+def get_friends():
+    try:
+        data = request.json
+        user_id = data.get('user_id')
+
+        if not user_id:
+            return jsonify({'error': 'user_id requerido'}), 400
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor(dictionary=True)
+
+        senderQuery = """
+            SELECT sender_id AS friend_id, sender_name AS friend_name FROM friends 
+            WHERE receiver_id = %s AND accepted = 1
+            """
+        cursor.execute(senderQuery, (user_id, ))
+        senderFriends = cursor.fetchall()
+
+        receiverQuery = """
+                    SELECT receiver_id AS friend_id, receiver_name AS friend_name FROM friends 
+                    WHERE sender_id = %s AND accepted = 1
+                    """
+        cursor.execute(receiverQuery, (user_id,))
+        receiverFriends = cursor.fetchall()
+
+        friends = senderFriends + receiverFriends
+
+        cursor.close()
+        conn.close()
+
+        return jsonify(friends)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     import os
