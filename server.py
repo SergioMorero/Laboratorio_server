@@ -846,12 +846,27 @@ def add_friend():
     sender_name = data.get("sender_name")
     receiver_name = data.get("receiver_name")
 
+    if not sender_id or not sender_name or not receiver_name:
+        return jsonify({"error": "Faltan datos"}), 400
+
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor()
 
     cursor.execute("SELECT id FROM user WHERE name = %s", (receiver_name, ))
-    receiver_id = cursor.fetchone()[0]
+    result = cursor.fetchone()
 
+    if not result:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    receiver_id = result[0]
+    cursor.execute("""INSERT INTO friends (sender_id, sender_name, receiver_id, receiver_name, accepted)
+                          VALUES (%s, %s, %s, %s, %s)""",
+                   (sender_id, sender_name, receiver_id, receiver_name, 0))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({"message": "Amigo añadido correctamente"}), 200
 
 
 @app.route('/friends', methods=['POST'])
@@ -859,7 +874,7 @@ def get_friends():
     try:
         data = request.json
         user_id = data.get('user_id')
-        #acceptance = data.get('aceppted')
+        acceptance = data.get('aceppted')
 
         if not user_id:
             return jsonify({'error': 'user_id requerido'}), 400
@@ -869,16 +884,16 @@ def get_friends():
 
         senderQuery = """
             SELECT sender_id AS friend_id, sender_name AS friend_name FROM friends 
-            WHERE receiver_id = %s AND accepted = 1
+            WHERE receiver_id = %s AND accepted = %s
             """
-        cursor.execute(senderQuery, (user_id, ))
+        cursor.execute(senderQuery, (user_id, acceptance))
         senderFriends = cursor.fetchall()
 
         receiverQuery = """
                     SELECT receiver_id AS friend_id, receiver_name AS friend_name FROM friends 
-                    WHERE sender_id = %s AND accepted = 1
+                    WHERE sender_id = %s AND accepted = %s
                     """
-        cursor.execute(receiverQuery, (user_id,))
+        cursor.execute(receiverQuery, (user_id, acceptance))
         receiverFriends = cursor.fetchall()
 
         friends = senderFriends + receiverFriends
