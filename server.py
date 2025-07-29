@@ -859,6 +859,15 @@ def add_friend():
         return jsonify({"error": "Usuario no encontrado"}), 404
 
     receiver_id = result[0]
+
+    cursor.execute("SELECT * FROM friends WHERE"
+                   "(sender_id = %s AND receiver_id = %s)"
+                   "OR"
+                   "(receiver_id = %s AND sender_id = %s)", (sender_id, receiver_id, sender_id, receiver_id))
+    newResult = cursor.fetchone()
+    if result is not None:
+        return jsonify({"message": "Ya hay una solicitud o son amigos"}), 200
+
     cursor.execute("""INSERT INTO friends (sender_id, sender_name, receiver_id, receiver_name, accepted)
                           VALUES (%s, %s, %s, %s, %s)""",
                    (sender_id, sender_name, receiver_id, receiver_name, 0))
