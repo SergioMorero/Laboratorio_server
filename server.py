@@ -839,6 +839,18 @@ def user_exists():
 
 # Friends
 
+@app.route('/find-friend-room', methods=['POST'])
+def find_friend_room():
+    try:
+        host = request.form.get("host")
+        for room_id in rooms:
+            if rooms.get(room_id).get("host") == host:
+                return jsonify({"found": True}), 200
+        return jsonify({"found": False}), 404
+    except Exception as e:
+        print("Error en /find-friend-room:", str(e))
+        return jsonify({"status": "error", "message":str(e)}),500
+
 @app.route('/friends', methods=['PUT'])
 def add_friend():
     data = request.json
@@ -944,6 +956,35 @@ def delete_friend():
     conn.close()
 
     return jsonify({'message': 'Amistad eliminada correctamente'}), 200
+
+@app.route('/accept_friend', methods=['POST'])
+def accept_friend():
+    try:
+        data = request.json
+        user_id = data.get('user_id')
+        friend_id = data.get('friend_id')
+
+        if not user_id or not friend_id:
+            return jsonify({'error': 'Missing parameters'}), 400
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        # Actualizar el estado de aceptación
+        update_query = """
+            UPDATE friends 
+            SET accepted = 1 
+            WHERE sender_id = %s AND receiver_id = %s
+        """
+        cursor.execute(update_query, (friend_id, user_id))  # El que envió = friend_id
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':
