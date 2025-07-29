@@ -886,6 +886,7 @@ def get_friends():
             SELECT sender_id AS friend_id, sender_name AS friend_name FROM friends 
             WHERE receiver_id = %s AND accepted = %s
             """
+
         cursor.execute(senderQuery, (user_id, acceptance))
         senderFriends = cursor.fetchall()
 
@@ -893,7 +894,11 @@ def get_friends():
                     SELECT receiver_id AS friend_id, receiver_name AS friend_name FROM friends 
                     WHERE sender_id = %s AND accepted = %s
                     """
-        cursor.execute(receiverQuery, (user_id, acceptance))
+        if (acceptance == 1):
+            cursor.execute(receiverQuery, (user_id, acceptance))
+        elif (acceptance == 0)
+            cursor.execute(receiverQuery, (user_id, -2))
+
         receiverFriends = cursor.fetchall()
 
         friends = senderFriends + receiverFriends
