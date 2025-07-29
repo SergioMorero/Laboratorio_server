@@ -722,7 +722,8 @@ def remove_session_id() -> None:
         conn.close()
         return '', code
 
-@app.route("/googlelogin") # callback para google
+
+@app.route("/googlelogin")  # callback para google
 def google_login():
     code = request.args.get('code')
     session_id = request.args.get('state')
@@ -754,13 +755,12 @@ def google_login():
             WHERE id = %s"""
                        , (user_name, user_email, session_id,))
         conn.commit()
-        code = 200
+        return "Sign in successful. You can close this window", 200
     except mysql.connector.Error as err:
-        code = 400
+        return 'Error, please try again', 400
     finally:
         cursor.close()
         conn.close()
-        return '', code
 
 
 """
