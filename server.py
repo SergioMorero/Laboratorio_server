@@ -859,6 +859,7 @@ def get_friends():
     try:
         data = request.json
         user_id = data.get('user_id')
+        #acceptance = data.get('aceppted')
 
         if not user_id:
             return jsonify({'error': 'user_id requerido'}), 400
@@ -889,6 +890,32 @@ def get_friends():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/friends', methods=['DELETE'])
+def delete_friend():
+    data = request.json
+    user_id = data.get('user_id')
+    friend_id = data.get('friend_id')
+
+    if not user_id or not friend_id:
+        return jsonify({'error': 'user_id y friend_id requeridos'}), 400
+
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+                DELETE FROM friends 
+                WHERE 
+                (sender_id = %s AND receiver_id = %s) OR 
+                (sender_id = %s AND receiver_id = %s)
+            """, (user_id, friend_id, friend_id, user_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'message': 'Amistad eliminada correctamente'}), 200
+
 
 if __name__ == '__main__':
     import os
