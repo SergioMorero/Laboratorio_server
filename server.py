@@ -862,7 +862,7 @@ def add_friend():
 
     cursor.execute("SELECT * FROM friends WHERE"
                    "(sender_id = %s AND receiver_id = %s)"
-                   "OR"
+                   " OR "
                    "(receiver_id = %s AND sender_id = %s)", (sender_id, receiver_id, sender_id, receiver_id))
     newResult = cursor.fetchone()
     if newResult is not None:
