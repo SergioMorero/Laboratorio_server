@@ -851,6 +851,7 @@ def find_friend_room():
         print("Error en /find-friend-room:", str(e))
         return jsonify({"status": "error", "message":str(e)}),500
 
+
 @app.route('/friends', methods=['PUT'])
 def add_friend():
     data = request.json
